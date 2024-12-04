@@ -24,7 +24,6 @@ public class ReqRes {
     private String username;
     private String email;
     private String password;
-    private String role;
     private List<Journal> journals;
     private List<Favorite> favorites;
     private AppUser appUser;

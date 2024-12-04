@@ -22,10 +22,6 @@ public class AppUser implements UserDetails {
     private String username;
     private String email;
     private String password;
-    private String img;
-    private LocalDateTime created;
-    private LocalDateTime updated;
-    private String role;
 
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
@@ -34,9 +30,10 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Favorite> favorites;
 
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of();
     }
 
     @Override

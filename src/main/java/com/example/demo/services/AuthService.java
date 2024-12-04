@@ -33,9 +33,9 @@ public class AuthService {
         ReqRes resp = new ReqRes();
         try {
             AppUser appUser = new AppUser();
+            appUser.setUsername(registrationRequest.getUsername());
             appUser.setEmail(registrationRequest.getEmail());
             appUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-            appUser.setRole(registrationRequest.getRole());
             AppUser appUserRes = appUserRepository.save(appUser);
             if (appUserRes != null && appUserRes.getId()>0) {
                 resp.setAppUser(appUserRes);

@@ -19,8 +19,6 @@ public class Journal {
     private String content;
     private String status;
     private String img;
-    private LocalDateTime created;
-    private LocalDateTime updated;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
