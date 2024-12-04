@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -29,14 +28,14 @@ public class JournalController {
     }
 
     @PostMapping("create")
-    public Journal createJournal(@RequestBody Journal journal) {
+    public String createJournal(@RequestBody Journal journal) {
         return journalService.createJournal(journal);
     }
 
     @PutMapping("update/{id}")
     public ResponseEntity<Object> updateJournal(@PathVariable int id, @RequestBody Journal journal) {
         journal.setId(id);
-        String res = String.valueOf(journalService.updateJournal(journal));
+        String res = String.valueOf(journalService.updateJournal(journal, id));
         return ResponseEntity.ok(res);
     }
 

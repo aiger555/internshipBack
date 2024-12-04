@@ -27,31 +27,23 @@ public class JournalService {
         return journalRepository.findById(id);
     }
 
-    public Journal createJournal(Journal journal) {
-        journal.setTitle(journal.getTitle());
-        journal.setContent(journal.getContent());
-        journal.setStatus(journal.getStatus());
-        journal.setAppUser(journal.getAppUser());
-        return journalRepository.save(journal);
+    public String createJournal(Journal journal) {
+        journalRepository.save(journal);
+        return "success";
+
     }
 
 
-public Journal updateJournal(Journal journal) {
+public Journal updateJournal(Journal journal, int id) {
     // Ensure the journal exists before updating
-    Journal existingJournal = journalRepository.findById(journal.getId())
+    Journal existingJournal = journalRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Journal not found"));
 
-    // Update fields while retaining existing data for null or empty values
-    existingJournal.setTitle(journal.getTitle() != null ? journal.getTitle() : existingJournal.getTitle());
-    existingJournal.setContent(journal.getContent() != null ? journal.getContent() : existingJournal.getContent());
-    existingJournal.setStatus(journal.getStatus() != null ? journal.getStatus() : existingJournal.getStatus());
-    existingJournal.setImg(journal.getImg() != null ? journal.getImg() : existingJournal.getImg());
-
-    if (journal.getAppUser() != null && journal.getAppUser().getId() > 0) {
-        AppUser appUser = appUserRepository.findById(journal.getAppUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        existingJournal.setAppUser(appUser);
-    }
+    existingJournal.setTitle(journal.getTitle());
+    existingJournal.setContent(journal.getContent());
+    existingJournal.setStatus(journal.getStatus());
+    existingJournal.setAppUser(journal.getAppUser());
+    existingJournal.setImg(journal.getImg());
 
     return journalRepository.save(existingJournal);
 }
