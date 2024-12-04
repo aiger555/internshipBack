@@ -1,5 +1,6 @@
 package com.example.demo.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,8 +24,10 @@ public class Journal {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private AppUser appUser;
 
     @OneToMany(mappedBy = "journal", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Favorite> favorites;
 }

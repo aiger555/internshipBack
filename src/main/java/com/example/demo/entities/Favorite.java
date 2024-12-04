@@ -1,5 +1,6 @@
 package com.example.demo.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,12 +17,12 @@ public class Favorite {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private AppUser appUser;
 
     @ManyToOne
     @JoinColumn(name = "journal_id", nullable = false)
+    @JsonIgnore
     private Journal journal;
-
-    private LocalDateTime created;
 
 }

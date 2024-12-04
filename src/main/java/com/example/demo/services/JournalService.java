@@ -48,7 +48,7 @@ public Journal updateJournal(Journal journal, int id) {
     return journalRepository.save(existingJournal);
 }
 
-    public void deleteJournal(int id) {
+public void deleteJournal(int id) {
         journalRepository.deleteById(id);
     }
 }
