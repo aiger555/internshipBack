@@ -6,10 +6,13 @@ import com.example.demo.repositories.JournalRepository;
 import com.example.demo.services.JournalService;
 import com.example.demo.services.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,5 +79,31 @@ public class JournalController {
 
         // Call service method to get favorite journals for the authenticated user
         return journalService.getFavoriteJournalsByEmail(email);
+    }
+
+    // Upload an image for a journal
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            String message = journalService.uploadImage(file);
+            if (message != null) {
+                return ResponseEntity.ok(message);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed");
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error uploading image");
+        }
+    }
+
+    // Download an image by file name
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<byte[]> downloadImage(@PathVariable String fileName) {
+        try {
+            byte[] image = journalService.downloadImage(fileName);
+            return ResponseEntity.ok(image);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

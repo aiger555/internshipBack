@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +58,6 @@ public class JournalService {
         existingJournal.setTitle(updatedJournal.getTitle());
         existingJournal.setContent(updatedJournal.getContent());
         existingJournal.setStatus(updatedJournal.getStatus());
-        existingJournal.setImg(updatedJournal.getImg());
         existingJournal.setFavorite(updatedJournal.getFavorite());
 
         // Save the updated journal
@@ -90,5 +91,23 @@ public class JournalService {
     public List<Journal> getFavoriteJournalsByEmail(String email) {
         // Get all favorite journals related to the user with the provided email
         return journalRepository.findByAppUserEmailAndFavorite(email, true);
+    }
+
+    public String uploadImage(MultipartFile file) throws IOException {
+
+        Journal imageData = journalRepository.save(Journal.builder()
+                .title(file.getOriginalFilename())
+                .content(file.getContentType())
+                .imageData(ImageUtils.compressImage(file.getBytes())).build());
+        if (imageData != null) {
+            return "file uploaded successfully : " + file.getOriginalFilename();
+        }
+        return null;
+    }
+
+    public byte[] downloadImage(String fileName){
+        Optional<Journal> dbImageData = journalRepository.findByTitle(fileName);
+        byte[] images=ImageUtils.decompressImage(dbImageData.get().getImageData());
+        return images;
     }
 }

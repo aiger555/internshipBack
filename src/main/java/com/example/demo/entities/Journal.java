@@ -2,8 +2,7 @@ package com.example.demo.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +10,9 @@ import java.util.List;
 @Entity
 @Table(name = "journals")
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Journal {
 
     @Id
@@ -20,7 +22,11 @@ public class Journal {
     private String title;
     private String content;
     private String status;
-    private String img;
+    private Boolean favorite;
+
+    @Lob
+    @Column(name = "imagedata",length = 1000)
+    private byte[] imageData;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,7 +35,7 @@ public class Journal {
     @JsonIgnore
     private AppUser appUser;
 
-    private Boolean favorite;
+
 
     @Override
     public String toString() {
