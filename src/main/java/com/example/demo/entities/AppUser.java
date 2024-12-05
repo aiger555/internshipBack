@@ -25,8 +25,6 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Journal> journals;  // posts
 
-    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Favorite> favorites;  // favorites
 
     @Override
     public String getUsername() {

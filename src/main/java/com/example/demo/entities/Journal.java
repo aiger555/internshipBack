@@ -3,6 +3,7 @@ package com.example.demo.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,10 +25,15 @@ public class Journal {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     @JsonIgnore
     private AppUser appUser;
 
-    @OneToMany(mappedBy = "journal", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Favorite> favorites;
+    private Boolean favorite;
+
+    @Override
+    public String toString() {
+        return "Journal [id=" + id + ", title=" + title + "]";
+    }
+
 }

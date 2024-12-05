@@ -4,6 +4,8 @@ import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Journal;
 import com.example.demo.repositories.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,6 +57,7 @@ public class JournalService {
         existingJournal.setContent(updatedJournal.getContent());
         existingJournal.setStatus(updatedJournal.getStatus());
         existingJournal.setImg(updatedJournal.getImg());
+        existingJournal.setFavorite(updatedJournal.getFavorite());
 
         // Save the updated journal
         return journalRepository.save(existingJournal);
@@ -75,5 +78,17 @@ public class JournalService {
 
         // Delete the journal
         journalRepository.delete(journal);
+    }
+
+//    public Journal setFavorite(int productId, boolean favorite) {
+//        Journal journal = journalRepository.findById(productId)
+//                .orElseThrow(() -> new RuntimeException("Product not found"));
+//        journal.setFavorite(favorite);
+//        return journalRepository.save(journal);
+//    }
+
+    public List<Journal> getFavoriteJournalsByEmail(String email) {
+        // Get all favorite journals related to the user with the provided email
+        return journalRepository.findByAppUserEmailAndFavorite(email, true);
     }
 }
