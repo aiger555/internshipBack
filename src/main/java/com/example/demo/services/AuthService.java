@@ -33,7 +33,6 @@ public class AuthService {
         ReqRes resp = new ReqRes();
         try {
             AppUser appUser = new AppUser();
-            appUser.setUsername(registrationRequest.getUsername());
             appUser.setEmail(registrationRequest.getEmail());
             appUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             AppUser appUserRes = appUserRepository.save(appUser);
@@ -61,7 +60,7 @@ public class AuthService {
             response.setStatusCode(200);
             response.setToken(jwt);
             response.setRefreshToken(refreshToken);
-            response.setExpirationTime("24Hr");
+            response.setExpirationTime("1Hr");
             response.setMessage("Successfully Signed In");
         }catch (Exception e){
             response.setStatusCode(500);
@@ -72,7 +71,7 @@ public class AuthService {
 
     public ReqRes refreshToken(ReqRes refreshTokenReqiest){
         ReqRes response = new ReqRes();
-        String ourEmail = jwtUtils.extractUsername(refreshTokenReqiest.getToken());
+        String ourEmail = jwtUtils.extractEmail(refreshTokenReqiest.getToken());
         AppUser users = appUserRepository.findByEmail(ourEmail).orElseThrow();
         if (jwtUtils.isTokenValid(refreshTokenReqiest.getToken(), users)) {
             var jwt = jwtUtils.generateToken(users);
@@ -114,7 +113,7 @@ public class AuthService {
         ReqRes response = new ReqRes();
         try {
             // Validate the reset token
-            String email = jwtUtils.extractUsername(resetToken);
+            String email = jwtUtils.extractEmail(resetToken);
             AppUser user = appUserRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 

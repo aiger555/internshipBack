@@ -2,7 +2,6 @@ package com.example.demo.services;
 
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Journal;
-import com.example.demo.repositories.AppUserRepository;
 import com.example.demo.repositories.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ public class JournalService {
     private JournalRepository journalRepository;
 
     @Autowired
-    private AppUserRepository appUserRepository;
+    private AppUserService appUserService;
 
     public List<Journal> getAllJournals() {
         return journalRepository.findAll();
@@ -27,28 +26,54 @@ public class JournalService {
         return journalRepository.findById(id);
     }
 
-    public String createJournal(Journal journal) {
-        journalRepository.save(journal);
-        return "success";
+    public Journal createJournal(Journal journal, String userEmail) {
+        // Find the user by email
+        AppUser user = appUserService.findByEmail(userEmail);
 
+        // Assign the user to the journal
+        journal.setAppUser(user);
+
+        // Save the journal
+        return journalRepository.save(journal);
     }
 
+    public Journal updateJournal(int journalId, Journal updatedJournal, String userEmail) {
+        // Find the user by email
+        AppUser user = appUserService.findByEmail(userEmail);
 
-public Journal updateJournal(Journal journal, int id) {
-    // Ensure the journal exists before updating
-    Journal existingJournal = journalRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Journal not found"));
+        // Find the journal by ID
+        Journal existingJournal = journalRepository.findById(journalId)
+                .orElseThrow(() -> new RuntimeException("Journal not found"));
 
-    existingJournal.setTitle(journal.getTitle());
-    existingJournal.setContent(journal.getContent());
-    existingJournal.setStatus(journal.getStatus());
-    existingJournal.setAppUser(journal.getAppUser());
-    existingJournal.setImg(journal.getImg());
+        // Ensure the journal belongs to the user
+        if (!existingJournal.getAppUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This journal does not belong to the current user");
+        }
 
-    return journalRepository.save(existingJournal);
-}
+        // Update the journal fields
+        existingJournal.setTitle(updatedJournal.getTitle());
+        existingJournal.setContent(updatedJournal.getContent());
+        existingJournal.setStatus(updatedJournal.getStatus());
+        existingJournal.setImg(updatedJournal.getImg());
 
-public void deleteJournal(int id) {
-        journalRepository.deleteById(id);
+        // Save the updated journal
+        return journalRepository.save(existingJournal);
+    }
+
+    public void deleteJournal(int journalId, String userEmail) {
+        // Find the user by email
+        AppUser user = appUserService.findByEmail(userEmail);
+
+        // Find the journal by ID
+        Journal journal = journalRepository.findById(journalId)
+                .orElseThrow(() -> new RuntimeException("Journal not found"));
+
+        // Ensure the journal belongs to the user
+        if (!journal.getAppUser().getId().equals(user.getId())) {
+            throw new RuntimeException("This journal does not belong to the current user");
+        }
+
+        // Delete the journal
+        journalRepository.delete(journal);
     }
 }

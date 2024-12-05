@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class AppUserService  implements UserDetailsService {
+public class AppUserService implements UserDetailsService {
 
     @Autowired
     private AppUserRepository appUserRepository;
@@ -37,20 +37,28 @@ public class AppUserService  implements UserDetailsService {
     public void deleteUser(int id) {
         appUserRepository.deleteById(id);
     }
+
     public AppUser findByEmail(String email) {
         return appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        AppUser appUser = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Find the user by email (email is treated as the "username")
+        Optional<AppUser> optionalAppUser = appUserRepository.findByEmail(username);
 
+        // If user is not present, throw UsernameNotFoundException
+        AppUser appUser = optionalAppUser.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+
+        // Convert AppUser to UserDetails (return an instance of User with username, password, and roles)
         return User.builder()
-                .username(appUser.getEmail())
+                .username(appUser.getEmail()) // Using email as the "username"
                 .password(appUser.getPassword())
+                .authorities("ROLE_USER") // You can adjust this to handle roles properly
                 .build();
     }
-}
 
+
+
+}

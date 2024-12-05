@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.entities.Journal;
 import com.example.demo.services.JournalService;
+import com.example.demo.services.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,11 +11,19 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/journals")
+@RequestMapping("/journals")
 public class JournalController {
 
     @Autowired
     private JournalService journalService;
+
+    @Autowired
+    private JWTUtils jwtUtils; // Inject JWTUtils for JWT operations
+
+    // Method to extract email from Authorization header
+    private String getEmailFromAuthHeader(String authHeader) {
+        return jwtUtils.getEmailFromAuthHeader(authHeader); // Use JWTUtils to extract the email
+    }
 
     @GetMapping
     public List<Journal> getAllJournals() {
@@ -27,21 +36,21 @@ public class JournalController {
         return journal.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("create")
-    public String createJournal(@RequestBody Journal journal) {
-        return journalService.createJournal(journal);
+    @PostMapping("/create")
+    public Journal createJournal(@RequestBody Journal journal, @RequestHeader("Authorization") String authHeader) {
+        String userEmail = getEmailFromAuthHeader(authHeader); // Get email from the auth header
+        return journalService.createJournal(journal, userEmail); // Pass email to service
     }
 
     @PutMapping("update/{id}")
-    public ResponseEntity<Object> updateJournal(@PathVariable int id, @RequestBody Journal journal) {
-        journal.setId(id);
-        String res = String.valueOf(journalService.updateJournal(journal, id));
-        return ResponseEntity.ok(res);
+    public Journal updateJournal(@PathVariable int id, @RequestBody Journal journal, @RequestHeader("Authorization") String authHeader) {
+        String userEmail = getEmailFromAuthHeader(authHeader); // Get email from the auth header
+        return journalService.updateJournal(id, journal, userEmail); // Pass email to service
     }
 
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<Void> deleteJournal(@PathVariable int id) {
-        journalService.deleteJournal(id);
-        return ResponseEntity.noContent().build();
+    public void deleteJournal(@PathVariable int id, @RequestHeader("Authorization") String authHeader) {
+        String userEmail = getEmailFromAuthHeader(authHeader); // Get email from the auth header
+        journalService.deleteJournal(id, userEmail); // Pass email to service
     }
 }

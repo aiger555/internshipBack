@@ -16,45 +16,73 @@ import java.util.function.Function;
 @Component
 public class JWTUtils {
 
-    private SecretKey Key;
-    private  static  final long EXPIRATION_TIME = 86400000; //24hours or 86400000 milisecs
-    public JWTUtils(){
-        String secreteString = "843567893696976453275974432697R634976R738467TR678T34865R6834R8763T478378637664538745673865783678548735687R3";
-        byte[] keyBytes = Base64.getDecoder().decode(secreteString.getBytes(StandardCharsets.UTF_8));
-        this.Key = new SecretKeySpec(keyBytes, "HmacSHA256");
+    private SecretKey key;
+    private static final long EXPIRATION_TIME = 86400000; // 24 hours in milliseconds
+
+    public JWTUtils() {
+        String secretString = "843567893696976453275974432697R634976R738467TR678T34865R6834R8763T478378637664538745673865783678548735687R3";
+        byte[] keyBytes = Base64.getDecoder().decode(secretString.getBytes(StandardCharsets.UTF_8));
+        this.key = new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
-    public String generateToken(UserDetails userDetails){
+    // Generate token with email as subject
+    public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(userDetails.getUsername()) // Email will be the username
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(Key)
+                .signWith(key)
                 .compact();
     }
-    public String generateRefreshToken(HashMap<String, Object> claims, UserDetails userDetails){
+
+    // Generate refresh token with claims
+    public String generateRefreshToken(HashMap<String, Object> claims, UserDetails userDetails) {
         return Jwts.builder()
                 .claims(claims)
-                .subject(userDetails.getUsername())
+                .subject(userDetails.getUsername()) // Email will be the username
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(Key)
+                .signWith(key)
                 .compact();
     }
 
-    public String extractUsername(String token){
-        return extractClaims(token, Claims::getSubject);
-    }
-    private <T> T extractClaims(String token, Function<Claims, T> claimsTFunction){
-        return claimsTFunction.apply(Jwts.parser().verifyWith(Key).build().parseSignedClaims(token).getPayload());
+    // Extract the email from token
+    public String extractEmail(String token) {
+        return extractClaim(token, Claims::getSubject); // Email is stored in the subject
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails){
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-    public boolean isTokenExpired(String token){
-        return extractClaims(token, Claims::getExpiration).before(new Date());
+    // Extract a specific claim
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
     }
 
+    // Extract all claims from the token
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    // Validate the token
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String email = extractEmail(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token)); // Compare with email
+    }
+
+    // Check if the token is expired
+    public boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    // Extract email from Authorization header
+    public String getEmailFromAuthHeader(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwtToken = authHeader.substring(7); // Remove "Bearer " prefix
+            return extractEmail(jwtToken); // Extract email from JWT
+        }
+        return null;
+    }
 }
