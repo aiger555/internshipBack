@@ -9,7 +9,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,9 +109,34 @@ public class JournalService {
         return null;
     }
 
-    public byte[] downloadImage(String fileName){
-        Optional<Journal> dbImageData = journalRepository.findByTitle(fileName);
-        byte[] images=ImageUtils.decompressImage(dbImageData.get().getImageData());
-        return images;
+    public byte[] downloadImage(String fileName) throws IOException {
+        Path imagePath = Paths.get(System.getProperty("user.dir"), "image", fileName);
+        System.out.println("Looking for file at: " + imagePath.toAbsolutePath());
+        if (!Files.exists(imagePath)) {
+            throw new FileNotFoundException("File not found: " + fileName);
+        }
+        return Files.readAllBytes(imagePath);
     }
+
+    public boolean deleteImage(String fileName) {
+        Optional<Journal> journal = journalRepository.findByImageName(fileName);
+        if (journal.isPresent()) {
+            // Remove the image field from the journal entity
+            Journal existingJournal = journal.get();
+            existingJournal.setImageName(null); // Assuming `imageName` is the field storing the image name
+            journalRepository.save(existingJournal);
+
+            // Define the path to the image file in the resources/images folder
+            Path imagePath = Paths.get("src/main/resources/static", fileName);
+            try {
+                Files.deleteIfExists(imagePath);
+                return true;
+            } catch (IOException e) {
+                throw new RuntimeException("Error deleting file: " + e.getMessage());
+            }
+        }
+        return false;
+    }
+
+
 }

@@ -10,5 +10,8 @@ public interface JournalRepository extends JpaRepository<Journal, Integer> {
 //    List<Journal> findByFavorite(boolean favorite);
     List<Journal> findByAppUserEmailAndFavorite(String email, boolean favorite);
     Optional<Journal> findByTitle(String title);
+    Optional<Journal> findByImageName(String imageName);
+
+
 
 }

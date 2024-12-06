@@ -11,8 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ClassPathResource;
 
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,13 +103,47 @@ public class JournalController {
     }
 
     // Download an image by file name
-    @GetMapping("/download/{fileName}")
+    @GetMapping("/download/image/{fileName}")
     public ResponseEntity<byte[]> downloadImage(@PathVariable String fileName) {
         try {
-            byte[] image = journalService.downloadImage(fileName);
-            return ResponseEntity.ok(image);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            // Load the image as a classpath resource
+            Resource resource = new ClassPathResource("static/" + fileName);
+
+            // Check if the file exists
+            if (!resource.exists()) {
+                throw new FileNotFoundException("File not found: " + fileName);
+            }
+
+            // Read the file bytes
+            byte[] image = Files.readAllBytes(resource.getFile().toPath());
+
+            // Return the image
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/jpeg")
+                    .body(image);
+        } catch (FileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+
+
+    @DeleteMapping("/delete/image/{fileName}")
+    public ResponseEntity<String> deleteImage(@PathVariable String fileName) {
+        try {
+            // Create a File object for the image in resources/images/
+            File file = new File("src/main/resources/static/" + fileName);
+
+            if (file.exists() && file.delete()) {
+                return ResponseEntity.ok("Image deleted successfully.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image.");
+        }
+    }
+
 }

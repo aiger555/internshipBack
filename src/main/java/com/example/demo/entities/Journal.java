@@ -23,6 +23,8 @@ public class Journal {
     private String content;
     private String status;
     private Boolean favorite;
+    private String imageName;
+
 
     @Lob
     @Column(name = "imagedata",length = 1000)
