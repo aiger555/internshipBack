@@ -128,8 +128,6 @@ public class JournalController {
         }
     }
 
-
-
     @DeleteMapping("/delete/image/{fileName}")
     public ResponseEntity<String> deleteImage(@PathVariable String fileName) {
         try {
