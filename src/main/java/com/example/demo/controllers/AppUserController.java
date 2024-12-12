@@ -46,24 +46,24 @@ public class AppUserController {
     }
 
 
-    @PutMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        return new ResponseEntity<>(appUserService.forgotPassword(email), HttpStatus.OK);
-    }
-
-    @PutMapping("/set-password")
-    public ResponseEntity<String> setPassword(@RequestParam String email,
-                                              @RequestHeader String newPassword) {
-        return new ResponseEntity<>(appUserService.setPassword(email, newPassword), HttpStatus.OK);
-    }
-
-    @PutMapping("/verify-account")
-    public ResponseEntity<String> verifyAccount(@RequestParam String email,
-                                                @RequestParam String otp) {
-        return new ResponseEntity<>(appUserService.verifyAccount(email, otp), HttpStatus.OK);
-    }
-    @PutMapping("/regenerate-otp")
-    public ResponseEntity<String> regenerateOtp(@RequestParam String email) {
-        return new ResponseEntity<>(appUserService.regenerateOtp(email), HttpStatus.OK);
-    }
+//    @PutMapping("/forgot-password")
+//    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+//        return new ResponseEntity<>(appUserService.forgotPassword(email), HttpStatus.OK);
+//    }
+//
+//    @PutMapping("/set-password")
+//    public ResponseEntity<String> setPassword(@RequestParam String email,
+//                                              @RequestHeader String newPassword) {
+//        return new ResponseEntity<>(appUserService.setPassword(email, newPassword), HttpStatus.OK);
+//    }
+//
+//    @PutMapping("/verify-account")
+//    public ResponseEntity<String> verifyAccount(@RequestParam String email,
+//                                                @RequestParam String otp) {
+//        return new ResponseEntity<>(appUserService.verifyAccount(email, otp), HttpStatus.OK);
+//    }
+//    @PutMapping("/regenerate-otp")
+//    public ResponseEntity<String> regenerateOtp(@RequestParam String email) {
+//        return new ResponseEntity<>(appUserService.regenerateOtp(email), HttpStatus.OK);
+//    }
 }

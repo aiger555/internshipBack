@@ -70,49 +70,49 @@ public class AppUserService implements UserDetailsService {
     }
 
 
-    public String forgotPassword(String email) {
-        Optional<AppUser> appUser = Optional.ofNullable(appUserRepository.findByEmail(email)
-                .orElseThrow(
-                        () -> new RuntimeException("User not found with this email: " + email)));
-        try{
-            emailUtil.sendSetPasswordEmail(email);
-        } catch (MessagingException e){
-            throw new RuntimeException("Unable to send set password email, try again!");
-        }
-
-        return "Please check your email to set new password";
-    }
-
-
-    public String setPassword(String email, String newPassword) {
-        AppUser appUser = appUserRepository.findByEmail(email)
-                          .orElseThrow(
-                () -> new RuntimeException("User not found with this email: "+ email));
-        appUser.setPassword(newPassword);
-        appUserRepository.save(appUser);
-        return "New password set successfully, login with new password";
-    }
-    public String verifyAccount(String email, String otp) {
-        AppUser user = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with this email: " + email));
-            appUserRepository.save(user);
-            return "OTP verified you can login";
-    }
-
-    public String regenerateOtp(String email) {
-        AppUser user = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with this email: " + email));
-        String otp = otpUtil.generateOtp();
-        try {
-            emailUtil.sendOtpEmail(email, otp);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Unable to send otp please try again");
-        }
-        user.setOtp(otp);
-        user.setOtpGeneratedTime(LocalDateTime.now());
-        appUserRepository.save(user);
-        return "Email sent... please verify account within 1 minute";
-    }
+//    public String forgotPassword(String email) {
+//        Optional<AppUser> appUser = Optional.ofNullable(appUserRepository.findByEmail(email)
+//                .orElseThrow(
+//                        () -> new RuntimeException("User not found with this email: " + email)));
+//        try{
+//            emailUtil.sendSetPasswordEmail(email);
+//        } catch (MessagingException e){
+//            throw new RuntimeException("Unable to send set password email, try again!");
+//        }
+//
+//        return "Please check your email to set new password";
+//    }
+//
+//
+//    public String setPassword(String email, String newPassword) {
+//        AppUser appUser = appUserRepository.findByEmail(email)
+//                          .orElseThrow(
+//                () -> new RuntimeException("User not found with this email: "+ email));
+//        appUser.setPassword(newPassword);
+//        appUserRepository.save(appUser);
+//        return "New password set successfully, login with new password";
+//    }
+//    public String verifyAccount(String email, String otp) {
+//        AppUser user = appUserRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User not found with this email: " + email));
+//            appUserRepository.save(user);
+//            return "OTP verified you can login";
+//    }
+//
+//    public String regenerateOtp(String email) {
+//        AppUser user = appUserRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User not found with this email: " + email));
+//        String otp = otpUtil.generateOtp();
+//        try {
+//            emailUtil.sendOtpEmail(email, otp);
+//        } catch (MessagingException e) {
+//            throw new RuntimeException("Unable to send otp please try again");
+//        }
+//        user.setOtp(otp);
+//        user.setOtpGeneratedTime(LocalDateTime.now());
+//        appUserRepository.save(user);
+//        return "Email sent... please verify account within 1 minute";
+//    }
 
 
 

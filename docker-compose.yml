@@ -1,0 +1,29 @@
+#version: '3'
+#services:
+#  postgres-db:
+#    image: postgres:latest
+#    container_name: postgres-db
+#    environment:
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: journal
+#    volumes:
+#      - my-postgres-data:/var/lib/postgresql/data
+#    networks:
+#      - my-network
+#    ports:
+#      - "5432:5432"
+#
+#  backend-app:
+#    image: my-backend-image
+#    container_name: my-backend-app
+#    networks:
+#      - my-network
+#    ports:
+#      - "8090:8090"
+#
+#networks:
+#  my-network:
+#
+#volumes:
+#  my-postgres-data:
