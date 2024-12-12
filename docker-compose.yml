@@ -6,5 +6,5 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: blog
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: journal
