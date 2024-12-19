@@ -50,8 +50,8 @@ public class JournalController {
     }
 
     @GetMapping()
-    public List<Journal> getJournals(@RequestParam Integer userId) {
-        return journalService.getJournalsByUserId(userId); // Passing the user ID
+    public List<Journal> getJournals(@RequestParam String userEmail) {
+        return journalService.getJournalsByUserEmail(userEmail); // Passing the user ID
     }
 
 
