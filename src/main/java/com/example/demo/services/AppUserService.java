@@ -114,6 +114,10 @@ public class AppUserService implements UserDetailsService {
         return "Email sent... please verify account within 1 minute";
     }
 
+    public AppUser findById(Integer id) {
+        return appUserRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+    }
 
 
 }

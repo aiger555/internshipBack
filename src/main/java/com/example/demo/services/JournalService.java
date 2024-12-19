@@ -30,18 +30,19 @@ public class JournalService {
         return journalRepository.findAll();
     }
 
-    public List<Journal> getJournalsByUserEmail(String userEmail) {
-        // Find the user by email
-        AppUser user = appUserService.findByEmail(userEmail);
+    public List<Journal> getJournalsByUserId(Integer userId) {
+        // Find the user by ID
+        AppUser user = appUserService.findById(userId);
 
         // If the user is not found, return an empty list or throw an exception
         if (user == null) {
-            throw new RuntimeException("User not found with email: " + userEmail);
+            throw new RuntimeException("User not found with ID: " + userId);
         }
 
         // Fetch the list of journals associated with the user
         return journalRepository.findByAppUser(user); // Assuming the repository has this method
     }
+
 
 
     public Optional<Journal> getJournalById(int id) {
