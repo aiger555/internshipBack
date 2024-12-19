@@ -3,6 +3,7 @@ package com.example.demo.controllers;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Journal;
 import com.example.demo.repositories.JournalRepository;
+import com.example.demo.services.AppUserService;
 import com.example.demo.services.JournalService;
 import com.example.demo.services.JWTUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class JournalController {
     private JournalService journalService;
 
     @Autowired
+    private AppUserService appUserService;
+
+    @Autowired
     private JournalRepository journalRepository;
 
     @Autowired
@@ -40,10 +44,16 @@ public class JournalController {
         return jwtUtils.getEmailFromAuthHeader(authHeader); // Use JWTUtils to extract the email
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Journal> getAllJournals() {
         return journalService.getAllJournals();
     }
+
+    @GetMapping()
+    public List<Journal> getJournals(@RequestParam String email) {
+        return journalService.getJournalsByUserEmail(email); // Passing the user email
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Journal> getJournalById(@PathVariable int id) {
@@ -143,5 +153,9 @@ public class JournalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image.");
         }
     }
+
+
+
+
 
 }

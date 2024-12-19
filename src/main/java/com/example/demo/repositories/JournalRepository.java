@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Journal;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,6 +12,7 @@ public interface JournalRepository extends JpaRepository<Journal, Integer> {
     List<Journal> findByAppUserEmailAndFavorite(String email, boolean favorite);
     Optional<Journal> findByTitle(String title);
     Optional<Journal> findByImageName(String imageName);
+    List<Journal> findByAppUser(AppUser appUser);
 
 
 
