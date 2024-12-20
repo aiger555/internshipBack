@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.entities.AppUser;
 import com.example.demo.entities.Journal;
 import com.example.demo.repositories.JournalRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -127,14 +128,24 @@ public class JournalService {
 //    }
 
 
-    public byte[] downloadImage(String fileName) throws IOException {
+    public String getImageUrl(String fileName, HttpServletRequest request) throws IOException {
         Path imagePath = Paths.get(System.getProperty("user.dir"), "image", fileName);
         System.out.println("Looking for file at: " + imagePath.toAbsolutePath());
+
+        // Check if the file exists
         if (!Files.exists(imagePath)) {
             throw new FileNotFoundException("File not found: " + fileName);
         }
-        return Files.readAllBytes(imagePath);
+
+        // Construct and return the URL
+        String baseUrl = String.format("%s://%s:%d",
+                request.getScheme(),
+                request.getServerName(),
+                request.getServerPort());
+
+        return baseUrl + "/image/" + fileName;
     }
+
 
     public boolean deleteImage(String fileName) {
         // The image path saved in the database is the absolute path

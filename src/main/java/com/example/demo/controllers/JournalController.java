@@ -6,6 +6,7 @@ import com.example.demo.repositories.JournalRepository;
 import com.example.demo.services.AppUserService;
 import com.example.demo.services.JournalService;
 import com.example.demo.services.JWTUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -126,7 +127,7 @@ public class JournalController {
 
     // Download an image by file name
     @GetMapping("/download/image/{fileName}")
-    public ResponseEntity<byte[]> downloadImage(@PathVariable String fileName) {
+    public ResponseEntity<String> getImageUrl(@PathVariable String fileName, HttpServletRequest request) {
         try {
             // Define the custom folder where the images are stored
             Path filePath = Paths.get("uploads/images", fileName);
@@ -136,19 +137,23 @@ public class JournalController {
                 throw new FileNotFoundException("File not found: " + fileName);
             }
 
-            // Read the file as bytes
-            byte[] image = Files.readAllBytes(filePath);
+            // Construct the URL dynamically
+            String baseUrl = String.format("%s://%s:%d",
+                    request.getScheme(),
+                    request.getServerName(),
+                    request.getServerPort());
 
-            // Return the image with the proper content type (you can determine MIME type based on file extension if needed)
-            return ResponseEntity.ok()
-                    .header("Content-Type", "image/jpeg")
-                    .body(image);
+            String imageUrl = baseUrl + "/uploads/images/" + fileName;
+
+            // Return the URL as the response body
+            return ResponseEntity.ok(imageUrl);
         } catch (FileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found: " + fileName);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while generating the URL.");
         }
     }
+
 
 
     @DeleteMapping("/{journalId}/image/delete")
