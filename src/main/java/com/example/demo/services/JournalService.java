@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,20 +111,20 @@ public class JournalService {
         // Get all favorite journals related to the user with the provided email
         return journalRepository.findByAppUserEmailAndFavorite(email, true);
     }
-
-    public String uploadImage(MultipartFile file, int journalId) throws IOException {
-        Journal journal = journalRepository.findById(journalId)
-                .orElseThrow(() -> new RuntimeException("Journal not found"));
-
-        String fileName = file.getOriginalFilename();
-        byte[] compressedImage = ImageUtils.compressImage(file.getBytes());
-
-        journal.setImageName(fileName);
-        journal.setImageData(compressedImage);
-        journalRepository.save(journal);
-
-        return "Image uploaded successfully: " + fileName;
-    }
+//
+//    public String uploadImage(MultipartFile file, int journalId) throws IOException {
+//        Journal journal = journalRepository.findById(journalId)
+//                .orElseThrow(() -> new RuntimeException("Journal not found"));
+//
+//        String fileName = file.getOriginalFilename();
+//        byte[] compressedImage = ImageUtils.compressImage(file.getBytes());
+//
+//        journal.setImageName(fileName);
+//        journal.setImageData(compressedImage);
+//        journalRepository.save(journal);
+//
+//        return "Image uploaded successfully: " + fileName;
+//    }
 
 
     public byte[] downloadImage(String fileName) throws IOException {
@@ -136,25 +137,53 @@ public class JournalService {
     }
 
     public boolean deleteImage(String fileName) {
-        Optional<Journal> journalOpt = journalRepository.findByImageName(fileName);
+        // The image path saved in the database is the absolute path
+        Path filePath = Paths.get(fileName);
 
-        if (journalOpt.isPresent()) {
-            Journal journal = journalOpt.get();
-            journal.setImageName(null);
-            journal.setImageData(null);
-            journalRepository.save(journal);
-
-            Path filePath = Paths.get("src/main/resources/static", fileName);
-            try {
-                Files.deleteIfExists(filePath);
+        try {
+            // Check if the file exists and delete it
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
                 return true;
-            } catch (IOException e) {
-                throw new RuntimeException("Error deleting image file: " + e.getMessage());
             }
+        } catch (IOException e) {
+            throw new RuntimeException("Error deleting image file: " + e.getMessage());
         }
+
         return false;
     }
 
+    public String uploadImage(MultipartFile file, int journalId) throws IOException {
+        // Fetch the journal by ID
+        Journal journal = journalRepository.findById(journalId)
+                .orElseThrow(() -> new RuntimeException("Journal not found"));
 
+        // Get the file name
+        String fileName = file.getOriginalFilename();
+
+        // Path where the images are stored, e.g., a folder outside the resources/static directory
+        Path uploadPath = Paths.get("uploads/images", fileName);
+
+        // Create the upload folder if it doesn't exist
+        if (!Files.exists(uploadPath.getParent())) {
+            Files.createDirectories(uploadPath.getParent());
+        }
+
+        // Store the file in the file system
+        Files.copy(file.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
+
+        // Optionally, compress or manipulate the image before saving (e.g., using ImageUtils.compressImage)
+
+        // Delete the old image if one exists
+        if (journal.getImageName() != null) {
+            deleteImage(journal.getImageName());
+        }
+
+        // Set the new image name (file path) in the database
+        journal.setImageName(uploadPath.toString());
+        journalRepository.save(journal);
+
+        return fileName; // Return the file name or path for confirmation
+    }
 
 }

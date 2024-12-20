@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,30 +115,31 @@ public class JournalController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to modify this journal.");
             }
 
+            // Upload the image to the file system (not inside static folder)
             String message = journalService.uploadImage(file, journalId);
-            return ResponseEntity.ok(message);
+
+            return ResponseEntity.ok("Image uploaded successfully: " + message);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed: " + e.getMessage());
         }
     }
 
-
     // Download an image by file name
     @GetMapping("/download/image/{fileName}")
     public ResponseEntity<byte[]> downloadImage(@PathVariable String fileName) {
         try {
-            // Load the image as a classpath resource
-            Resource resource = new ClassPathResource("static/" + fileName);
+            // Define the custom folder where the images are stored
+            Path filePath = Paths.get("uploads/images", fileName);
 
             // Check if the file exists
-            if (!resource.exists()) {
+            if (!Files.exists(filePath)) {
                 throw new FileNotFoundException("File not found: " + fileName);
             }
 
-            // Read the file bytes
-            byte[] image = Files.readAllBytes(resource.getFile().toPath());
+            // Read the file as bytes
+            byte[] image = Files.readAllBytes(filePath);
 
-            // Return the image
+            // Return the image with the proper content type (you can determine MIME type based on file extension if needed)
             return ResponseEntity.ok()
                     .header("Content-Type", "image/jpeg")
                     .body(image);
@@ -146,6 +149,7 @@ public class JournalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
 
     @DeleteMapping("/{journalId}/image/delete")
     public ResponseEntity<String> deleteImage(@PathVariable int journalId, @RequestHeader("Authorization") String authHeader) {
@@ -161,13 +165,41 @@ public class JournalController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to modify this journal.");
         }
 
+        // Delete the image from the file system
         boolean isDeleted = journalService.deleteImage(journal.getImageName());
         return isDeleted ? ResponseEntity.ok("Image deleted successfully.") :
                 ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image deletion failed.");
     }
 
+    @PutMapping("/{journalId}/image/edit")
+    public ResponseEntity<String> editImage(@PathVariable int journalId, @RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String authHeader) {
+        try {
+            // Get the user email from the Authorization header (e.g., JWT token)
+            String userEmail = getEmailFromAuthHeader(authHeader);
 
+            // Fetch the journal by ID
+            Optional<Journal> journalOpt = journalService.getJournalById(journalId);
 
+            // Check if the journal exists
+            if (journalOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Journal not found.");
+            }
+
+            Journal journal = journalOpt.get();
+
+            // Check if the authenticated user is the owner of the journal
+            if (!journal.getAppUser().getEmail().equals(userEmail)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to modify this journal.");
+            }
+
+            // Upload the new image
+            String message = journalService.uploadImage(file, journalId);
+
+            return ResponseEntity.ok("Image updated successfully: " + message);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image update failed: " + e.getMessage());
+        }
+    }
 
 
 
