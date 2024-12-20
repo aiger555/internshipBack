@@ -98,19 +98,28 @@ public class JournalController {
     }
 
     // Upload an image for a journal
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/{journalId}/upload")
+    public ResponseEntity<String> uploadImage(@PathVariable int journalId, @RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String authHeader) {
         try {
-            String message = journalService.uploadImage(file);
-            if (message != null) {
-                return ResponseEntity.ok(message);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed");
+            String userEmail = getEmailFromAuthHeader(authHeader);
+            Optional<Journal> journalOpt = journalService.getJournalById(journalId);
+
+            if (journalOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Journal not found.");
             }
+
+            Journal journal = journalOpt.get();
+            if (!journal.getAppUser().getEmail().equals(userEmail)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to modify this journal.");
+            }
+
+            String message = journalService.uploadImage(file, journalId);
+            return ResponseEntity.ok(message);
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error uploading image");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image upload failed: " + e.getMessage());
         }
     }
+
 
     // Download an image by file name
     @GetMapping("/download/image/{fileName}")
@@ -138,21 +147,25 @@ public class JournalController {
         }
     }
 
-    @DeleteMapping("/delete/image/{fileName}")
-    public ResponseEntity<String> deleteImage(@PathVariable String fileName) {
-        try {
-            // Create a File object for the image in resources/images/
-            File file = new File("src/main/resources/static/" + fileName);
+    @DeleteMapping("/{journalId}/image/delete")
+    public ResponseEntity<String> deleteImage(@PathVariable int journalId, @RequestHeader("Authorization") String authHeader) {
+        String userEmail = getEmailFromAuthHeader(authHeader);
+        Optional<Journal> journalOpt = journalService.getJournalById(journalId);
 
-            if (file.exists() && file.delete()) {
-                return ResponseEntity.ok("Image deleted successfully.");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting image.");
+        if (journalOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Journal not found.");
         }
+
+        Journal journal = journalOpt.get();
+        if (!journal.getAppUser().getEmail().equals(userEmail)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to modify this journal.");
+        }
+
+        boolean isDeleted = journalService.deleteImage(journal.getImageName());
+        return isDeleted ? ResponseEntity.ok("Image deleted successfully.") :
+                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image deletion failed.");
     }
+
 
 
 

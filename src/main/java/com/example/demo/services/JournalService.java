@@ -111,17 +111,20 @@ public class JournalService {
         return journalRepository.findByAppUserEmailAndFavorite(email, true);
     }
 
-    public String uploadImage(MultipartFile file) throws IOException {
+    public String uploadImage(MultipartFile file, int journalId) throws IOException {
+        Journal journal = journalRepository.findById(journalId)
+                .orElseThrow(() -> new RuntimeException("Journal not found"));
 
-        Journal imageData = journalRepository.save(Journal.builder()
-                .title(file.getOriginalFilename())
-                .content(file.getContentType())
-                .imageData(ImageUtils.compressImage(file.getBytes())).build());
-        if (imageData != null) {
-            return "file uploaded successfully : " + file.getOriginalFilename();
-        }
-        return null;
+        String fileName = file.getOriginalFilename();
+        byte[] compressedImage = ImageUtils.compressImage(file.getBytes());
+
+        journal.setImageName(fileName);
+        journal.setImageData(compressedImage);
+        journalRepository.save(journal);
+
+        return "Image uploaded successfully: " + fileName;
     }
+
 
     public byte[] downloadImage(String fileName) throws IOException {
         Path imagePath = Paths.get(System.getProperty("user.dir"), "image", fileName);
@@ -133,24 +136,25 @@ public class JournalService {
     }
 
     public boolean deleteImage(String fileName) {
-        Optional<Journal> journal = journalRepository.findByImageName(fileName);
-        if (journal.isPresent()) {
-            // Remove the image field from the journal entity
-            Journal existingJournal = journal.get();
-            existingJournal.setImageName(null); // Assuming `imageName` is the field storing the image name
-            journalRepository.save(existingJournal);
+        Optional<Journal> journalOpt = journalRepository.findByImageName(fileName);
 
-            // Define the path to the image file in the resources/images folder
-            Path imagePath = Paths.get("src/main/resources/static", fileName);
+        if (journalOpt.isPresent()) {
+            Journal journal = journalOpt.get();
+            journal.setImageName(null);
+            journal.setImageData(null);
+            journalRepository.save(journal);
+
+            Path filePath = Paths.get("src/main/resources/static", fileName);
             try {
-                Files.deleteIfExists(imagePath);
+                Files.deleteIfExists(filePath);
                 return true;
             } catch (IOException e) {
-                throw new RuntimeException("Error deleting file: " + e.getMessage());
+                throw new RuntimeException("Error deleting image file: " + e.getMessage());
             }
         }
         return false;
     }
+
 
 
 }
